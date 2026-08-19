@@ -3,6 +3,7 @@
 # Configuration variables
 WALLPAPER_DIR="."
 README_FILE="README.md"
+REPO_URL="https://github.com/Lokendra2244/wallpaper/raw/main"
 
 # ---------------------------------------------------------
 # Initialize README
@@ -15,39 +16,92 @@ echo "" >>"$README_FILE"
 shopt -s nullglob
 
 # ---------------------------------------------------------
-# Image Section (Scaled Thumbnails)
+# Image Section (3-Column Grid)
 # ---------------------------------------------------------
 echo "## Images" >>"$README_FILE"
 echo "" >>"$README_FILE"
 
+# Setup the Markdown table header
+echo "| Column 1 | Column 2 | Column 3 |" >>"$README_FILE"
+echo "| :---: | :---: | :---: |" >>"$README_FILE"
+
+count=0
+row=""
+
 for image in "$WALLPAPER_DIR"/*.{jpg,jpeg,png,webp,gif}; do
   filename=$(basename "$image")
 
-  echo "### $filename" >>"$README_FILE"
-  # Using HTML tags to scale the image down to a 400px wide thumbnail
-  echo "<img src=\"$filename\" alt=\"$filename\" width=\"400\">" >>"$README_FILE"
-  echo "<br>" >>"$README_FILE"
+  # Build the cell using the relative path
+  cell="**$filename**<br><img src=\"$filename\" alt=\"$filename\" width=\"250\">"
+
+  # Append cell to the current row
+  row="${row}| ${cell} "
+  count=$((count + 1))
+
+  # If we hit 3 items, print the row and reset
+  if [ $count -eq 3 ]; then
+    echo "${row}|" >>"$README_FILE"
+    row=""
+    count=0
+  fi
 done
+
+# Handle any leftovers that didn't make a full row of 3
+if [ $count -gt 0 ]; then
+  while [ $count -lt 3 ]; do
+    row="${row}| "
+    count=$((count + 1))
+  done
+  echo "${row}|" >>"$README_FILE"
+fi
 
 echo "" >>"$README_FILE"
 
 # ---------------------------------------------------------
-# Video Section (Playable Embeds)
+# Video Section (3-Column Grid with Raw URLs)
 # ---------------------------------------------------------
 echo "## Videos" >>"$README_FILE"
 echo "Animated wallpapers and video loops." >>"$README_FILE"
 echo "" >>"$README_FILE"
 
+# Setup the Markdown table header
+echo "| Column 1 | Column 2 | Column 3 |" >>"$README_FILE"
+echo "| :---: | :---: | :---: |" >>"$README_FILE"
+
+count=0
+row=""
+
 for video in "$WALLPAPER_DIR"/*.{mp4,webm,mkv,mov}; do
   filename=$(basename "$video")
 
-  echo "### $filename" >>"$README_FILE"
-  # Using HTML tags for a playable video player, scaled to match image thumbnails
-  echo "<video src=\"$filename\" controls=\"controls\" width=\"400\"></video>" >>"$README_FILE"
-  echo "<br>" >>"$README_FILE"
+  # Construct the absolute raw URL for GitHub
+  raw_url="$REPO_URL/$filename"
+
+  # Build the cell using the raw URL
+  cell="**$filename**<br><video src=\"$raw_url\" controls width=\"250\"></video>"
+
+  # Append cell to the current row
+  row="${row}| ${cell} "
+  count=$((count + 1))
+
+  # If we hit 3 items, print the row and reset
+  if [ $count -eq 3 ]; then
+    echo "${row}|" >>"$README_FILE"
+    row=""
+    count=0
+  fi
 done
+
+# Handle any leftovers that didn't make a full row of 3
+if [ $count -gt 0 ]; then
+  while [ $count -lt 3 ]; do
+    row="${row}| "
+    count=$((count + 1))
+  done
+  echo "${row}|" >>"$README_FILE"
+fi
 
 # Disable nullglob
 shopt -u nullglob
 
-echo "Success: Thumbnail gallery linked to $README_FILE!"
+echo "Success: 3-column gallery generated in $README_FILE!"
